@@ -1,15 +1,18 @@
 # Acknowledgements
-Certain programs within this repository were adapted from, written by, or developed collaboratively with other individuals:
-https://github.com/GabrielReed225  
-https://github.com/willmcwain  
-https://github.com/s2xon  
+Certain programs within this repository were adapted from, written by, or developed collaboratively with other individuals. Credit is given below:
 
-main.py was written by me  
-CUD.py was written by GabrielReed225 and willmcwain  
-ascii_title.py was written by me and s2xon  
-filter-microservice.py was written by me and s2xon  
-image-microservice.py was written by s2xon  
-sorting.py was written by me and willmcwain
+GitHub profiles:
+- https://github.com/GabrielReed225  
+- https://github.com/willmcwain  
+- https://github.com/s2xon  
+
+File contributions:
+- main.py - written by data-byte12  
+- CUD.py - written by GabrielReed225 and willmcwain  
+- ascii_title.py - written by data-byte12 and s2xon  
+- filter-microservice.py - written by data-byte12 and s2xon  
+- image-microservice.py - written by s2xon  
+- sorting.py - written by data-byte12 and willmcwain
 
 # Professional Development
 This program was originally completed as a project for one of my college courses.
