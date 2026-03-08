@@ -2,13 +2,11 @@
 Certain programs within this repository were adapted from, written by, or developed collaboratively with other individuals. Credit is given below:
 
 GitHub profiles:
-- https://github.com/GabrielReed225  
 - https://github.com/willmcwain  
 - https://github.com/s2xon  
 
 File contributions:
-- main.py - written by data-byte12  
-- CUD.py - written by GabrielReed225 and willmcwain  
+- main.py - written by data-byte12   
 - ascii_title.py - written by data-byte12 and s2xon  
 - filter-microservice.py - written by data-byte12 and s2xon  
 - image-microservice.py - written by s2xon  
