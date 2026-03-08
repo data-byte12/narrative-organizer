@@ -4,8 +4,8 @@ import os
 
 # The microservice works inside its own directory
 service_dir = os.path.dirname(os.path.abspath(__file__))
-request_path = os.path.join(service_dir, "request.json")
-response_path = os.path.join(service_dir, "response.json")
+request_path = os.path.join(service_dir, "filter-request.json")
+response_path = os.path.join(service_dir, "filter-response.json")
 
 print("Filtering microservice running...")
 

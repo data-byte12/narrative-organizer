@@ -3,15 +3,11 @@ import time
 import os
 
 # TODO: Add functionality for editing characters
-# TODO: Add CUD microservice AND/OR Filter microservice
+# TODO: Add functionality for picking role rather than manually typing it
 # TODO: Add Image Retrieval microservice
 
-# def save_stories(stories)
-
-# def load_stories()
-
 def view_character(character):
-    print(f"\n{character["name"]} ({character.get("role")})\n"
+    print(f"\n{character.get("name")} ({character.get("role")})\n"
           f"_____________\n"
           f"Gender: {character.get("gender")}\n"
           f"Age: {character.get("age")}\n"
@@ -32,6 +28,36 @@ def view_all_characters(story):
             print(f"{index + 1}. {characters[index].get("name")} "
                   f"({characters[index].get("role")})")
         return True
+
+
+def view_all_main_characters(story):
+    request_path = "filter-request.json"
+    response_path = "filter-response.json"
+
+    characters = story.get("characters")
+
+    filters = [{"field": "role", "op": "eq", "value": "Main Character"}]
+
+    with open(request_path, "w") as f:
+        json.dump({"data": characters, "filters": filters}, f)
+
+    while True:
+        try:
+            with open(response_path, "r") as f:
+                response = json.load(f)
+                break
+        except (json.JSONDecodeError, FileNotFoundError):
+            time.sleep(0.1)
+            continue
+
+    os.remove(response_path)
+    main_characters = response.get("result", [])
+
+    if len(main_characters) == 0:
+        print(f"\n{story.get("title")} has no main characters!")
+    else:
+        for character in main_characters:
+            view_character(character)
 
 
 def locate_story(stories, title):
@@ -56,18 +82,16 @@ def convert_title_to_ascii(title):
     with open(request_path, "w") as f:
         json.dump(request_data, f)
 
-    timeout = 5
-    start = time.time()
-    while not os.path.exists(response_path):
-        if time.time() - start > timeout:
-            print("TIMEOUT: No response received")
-        time.sleep(0.1)
-
-    with open(response_path, "r") as f:
-        response = json.load(f)
+    while True:
+        try:
+            with open(response_path, "r") as f:
+                response = json.load(f)
+                break
+        except (json.JSONDecodeError, FileNotFoundError):
+            time.sleep(0.1)
+            continue
 
     os.remove(response_path)
-
     return response.get("result")
 
 
@@ -82,7 +106,7 @@ def sort_stories(stories):
     }
 
     with open(request_path, "w") as f:
-        json.dump(request_data, f, indent=4)
+        json.dump(request_data, f)
 
     while True:
         try:
@@ -133,6 +157,7 @@ mkchar - make a new character
 delchar - delete a character
 viewchar - view the details of one character
 viewallchars - view all characters in a story
+viewmainchars - view the details of all main characters in a story
 
 help - list commands
 exit - end the program"""
@@ -325,6 +350,16 @@ while running:
 
         if index > -1:
             view_all_characters(story_containers[index])
+        else:
+            print(f"\nThe story container for \"{title}\" does not exist!")
+
+    elif user_command == "viewmainchars":
+        title = input("Which story would you like to view the main characters of: ")
+
+        index = locate_story(story_containers, title)
+
+        if index > -1:
+            view_all_main_characters(story_containers[index])
         else:
             print(f"\nThe story container for \"{title}\" does not exist!")
 
