@@ -6,8 +6,6 @@ import os
 # TODO: Add CUD microservice AND/OR Filter microservice
 # TODO: Add Image Retrieval microservice
 
-# Testing again to make sure nothing broke.
-
 # def save_stories(stories)
 
 # def load_stories()
