@@ -37,8 +37,8 @@ import time
 # ── Paths ──────────────────────────────────────────────────────────────────────
 SERVICE_DIR   = os.path.dirname(os.path.abspath(__file__))
 STORAGE_DIR   = os.path.join(SERVICE_DIR, "stored_images")
-REQUEST_FILE  = os.path.join(SERVICE_DIR, "request.json")
-RESPONSE_FILE = os.path.join(SERVICE_DIR, "response.json")
+REQUEST_FILE  = os.path.join(SERVICE_DIR, "image-request.json")
+RESPONSE_FILE = os.path.join(SERVICE_DIR, "image-response.json")
 
 os.makedirs(STORAGE_DIR, exist_ok=True)
 

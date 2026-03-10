@@ -4,7 +4,6 @@ import os
 
 # TODO: Add functionality for editing characters
 # TODO: Add functionality for picking role rather than manually typing it
-# TODO: Add Image Retrieval microservice
 
 def view_character(character):
     print(f"\n{character.get("name")} ({character.get("role")})\n"
@@ -147,6 +146,82 @@ def sort_characters(characters):
     return response.get("result")
 
 
+def store_reference(image_path, char_name):
+    request_path = "image-request.json"
+    response_path = "image-response.json"
+
+    data = {
+        "action": "store",
+        "source_path": image_path,
+        "name": f"{char_name}"
+    }
+
+    with open(request_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+    while True:
+        try:
+            with open(response_path, "r") as f:
+                response = json.load(f)
+                break
+        except (json.JSONDecodeError, FileNotFoundError):
+            time.sleep(0.1)
+            continue
+
+    os.remove(response_path)
+    return response
+
+
+def delete_reference(char_name):
+    request_path = "image-request.json"
+    response_path = "image-response.json"
+
+    data = {
+        "action": "delete",
+        "name": f"{char_name}"
+    }
+
+    with open(request_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+    while True:
+        try:
+            with open(response_path, "r") as f:
+                response = json.load(f)
+                break
+        except (json.JSONDecodeError, FileNotFoundError):
+            time.sleep(0.1)
+            continue
+
+    os.remove(response_path)
+    return response
+
+
+def view_reference(char_name):
+    request_path = "image-request.json"
+    response_path = "image-response.json"
+
+    data = {
+        "action": "open",
+        "name": f"{char_name}",
+    }
+
+    with open(request_path, "w") as f:
+        json.dump(data, f, indent=4)
+
+    while True:
+        try:
+            with open(response_path, "r") as f:
+                response = json.load(f)
+                break
+        except (json.JSONDecodeError, FileNotFoundError):
+            time.sleep(0.1)
+            continue
+
+    os.remove(response_path)
+    return response
+
+
 title = convert_title_to_ascii("Narrative Organizer")
 commands = """mkstory - make a new story container
 editstory - edit the title of the story container
@@ -159,10 +234,14 @@ viewchar - view the details of one character
 viewallchars - view all characters in a story
 viewmainchars - view the details of all main characters in a story
 
+mkref - add a character reference
+delref - delete a character reference
+viewref - view a character reference
+
 help - list commands
 exit - end the program"""
 running = True
-story_containers = []
+stories = []
 
 print(title)
 print("-----------------------\n"
@@ -176,27 +255,26 @@ while running:
     if user_command == "mkstory":
         title = input("What would you like the story to be called: ")
 
-        index = locate_story(story_containers, title)
+        index = locate_story(stories, title)
 
         if index > -1:
             print(f"\n\"{title}\" already has a story container!")
         else:
-            story_containers.append({"title": title, "characters": []})
-            story_containers = sort_stories(story_containers)
+            stories.append({"title": title, "characters": []})
+            stories = sort_stories(stories)
 
             print(f"\nSuccessfully created a story container for \"{title}\"!")
-
 
     elif user_command == "editstory":
         old_title = input("Which story would you like to edit: ")
 
-        index = locate_story(story_containers, old_title)
+        index = locate_story(stories, old_title)
 
         if index > -1:
             new_title = input("\nWhat would you like the story to be called: ")
 
-            story_containers[index].update({"title": new_title})
-            story_containers = sort_stories(story_containers)
+            stories[index].update({"title": new_title})
+            stories = sort_stories(stories)
 
             print(f"\n\"{old_title}\" has been renamed to \"{new_title}\"")
         else:
@@ -205,7 +283,7 @@ while running:
     elif user_command == "delstory":
         title = input("Which story would you like to delete: ")
 
-        index = locate_story(story_containers, title)
+        index = locate_story(stories, title)
 
         if index > -1:
             print("\nWARNING: Deleting a story container also deletes all of its characters!")
@@ -214,7 +292,7 @@ while running:
                 confirmation = input(f"\nAre you sure you want to delete \"{title}\" (Y/N): ").lower()
 
                 if confirmation == "y":
-                    del story_containers[index]
+                    del stories[index]
 
                     print(f"\nSuccessfully deleted \"{title}\"!")
                     break
@@ -227,22 +305,22 @@ while running:
             print(f"\nThe story container for \"{title}\" does not exist!")
 
     elif user_command == "viewstories":
-        if len(story_containers) == 0:
+        if len(stories) == 0:
             print("You haven't made any story containers!")
         else:
-            for story in story_containers:
+            for story in stories:
                 print(story.get("title"))
 
     elif user_command == "mkchar":
         title = input("Which story does this character belong to: ")
 
-        story_index = locate_story(story_containers, title)
+        story_index = locate_story(stories, title)
 
         if story_index > -1:
             print("\nPlease fill in the following fields.\n")
             name = input("Name: ")
 
-            char_index = locate_character(story_containers[story_index]["characters"], name)
+            char_index = locate_character(stories[story_index]["characters"], name)
 
             if char_index == -1:
                 role = input("Role: ")
@@ -253,7 +331,7 @@ while running:
                 appearance = input("Appearance: ")
                 abilities = input("Abilities: ")
 
-                story_containers[story_index].get("characters").append({
+                stories[story_index].get("characters").append({
                     "name": name,
                     "role": role,
                     "gender": gender,
@@ -261,11 +339,12 @@ while running:
                     "species": species,
                     "personality": personality,
                     "appearance": appearance,
-                    "abilities": abilities})
+                    "abilities": abilities,
+                    "reference": False})
 
-                story_containers[story_index].update({"characters":
+                stories[story_index].update({"characters":
                                                           sort_characters(
-                                                              story_containers[
+                                                              stories[
                                                                   story_index].get(
                                                                   "characters"))})
 
@@ -280,20 +359,29 @@ while running:
     elif user_command == "delchar":
         title = input("Which story does this character belong to: ")
 
-        story_index = locate_story(story_containers, title)
+        story_index = locate_story(stories, title)
 
         if story_index > -1:
             name = input("\nWhich character would you like to delete: ")
 
             char_index = locate_character(
-                story_containers[story_index].get("characters"), name)
+                stories[story_index].get("characters"), name)
 
             if char_index > -1:
                 while True:
                     confirmation = input(f"\nAre you sure you want to delete \"{name}\" (Y/N): ").lower()
 
                     if confirmation == "y":
-                        del story_containers[story_index].get("characters")[char_index]
+                        del stories[story_index].get("characters")[char_index]
+
+                        has_reference = stories[story_index].get("characters")[
+                            char_index].get("reference")
+
+                        if has_reference:
+                            delete_reference(name)
+                            stories[story_index].get("characters")[
+                                char_index].update(
+                                {"reference": False})
 
                         print(f"\nSuccessfully deleted \"{name}\"!")
                         break
@@ -312,11 +400,11 @@ while running:
     elif user_command == "viewchar":
         title = input("Which story does this character belong to: ")
 
-        story_index = locate_story(story_containers, title)
+        story_index = locate_story(stories, title)
 
         if story_index > -1:
-            if view_all_characters(story_containers[story_index]):
-                story_characters = story_containers[story_index].get(
+            if view_all_characters(stories[story_index]):
+                story_characters = stories[story_index].get(
                     "characters")
 
                 character = input("\nWhich character would you like to view ("
@@ -346,20 +434,111 @@ while running:
     elif user_command == "viewallchars":
         title = input("Which story would you like to view the characters of: ")
 
-        index = locate_story(story_containers, title)
+        index = locate_story(stories, title)
 
         if index > -1:
-            view_all_characters(story_containers[index])
+            view_all_characters(stories[index])
         else:
             print(f"\nThe story container for \"{title}\" does not exist!")
 
     elif user_command == "viewmainchars":
         title = input("Which story would you like to view the main characters of: ")
 
-        index = locate_story(story_containers, title)
+        index = locate_story(stories, title)
 
         if index > -1:
-            view_all_main_characters(story_containers[index])
+            view_all_main_characters(stories[index])
+        else:
+            print(f"\nThe story container for \"{title}\" does not exist!")
+
+    elif user_command == "mkref":
+        title = input("Which story does this character belong to: ")
+
+        story_index = locate_story(stories, title)
+
+        if story_index > -1:
+            name = input("\nWhich character would you like to give a reference: ")
+
+            char_index = locate_character(
+                stories[story_index].get("characters"), name)
+
+            if char_index > -1:
+                has_reference = stories[story_index].get("characters")[char_index].get("reference")
+
+                if not has_reference:
+                    image_path = input("\nWhat is the path to the reference: ")
+
+                    if os.path.exists(image_path):
+                        store_reference(image_path, name)
+                        stories[story_index].get("characters")[char_index].update(
+                            {"reference": True})
+                        print(f"\nSuccessfully gave \"{name}\" a reference!")
+                    else:
+                        print(f"\nInvalid path.")
+
+                else:
+                    print(f"\nThe character \"{name}\" already has a reference!")
+
+            else:
+                print(f"\nThe character \"{name}\" does not exist in \"{title}\"!")
+
+        else:
+            print(f"\nThe story container for \"{title}\" does not exist!")
+
+    elif user_command == "delref":
+        title = input("Which story does this character belong to: ")
+
+        story_index = locate_story(stories, title)
+
+        if story_index > -1:
+            name = input("\nWhich character would you like to delete the reference of: ")
+
+            char_index = locate_character(
+                stories[story_index].get("characters"), name)
+
+            if char_index > -1:
+                has_reference = stories[story_index].get("characters")[
+                    char_index].get("reference")
+
+                if has_reference:
+                    delete_reference(name)
+                    stories[story_index].get("characters")[char_index].update(
+                        {"reference": False})
+                    print(f"\nSuccessfully deleted the reference for \"{name}\"!")
+                else:
+                    print(f"\nThe character \"{name}\" doesn't have a reference!")
+
+            else:
+                print(
+                    f"\nThe character \"{name}\" does not exist in \"{title}\"!")
+
+        else:
+            print(f"\nThe story container for \"{title}\" does not exist!")
+
+    elif user_command == "viewref":
+        title = input("Which story does this character belong to: ")
+
+        story_index = locate_story(stories, title)
+
+        if story_index > -1:
+            name = input("\nWhich character would you like to view the reference of: ")
+
+            char_index = locate_character(
+                stories[story_index].get("characters"), name)
+
+            if char_index > -1:
+                has_reference = stories[story_index].get("characters")[
+                    char_index].get("reference")
+
+                if has_reference:
+                    view_reference(name)
+                else:
+                    print(f"\nThe character \"{name}\" doesn't have a reference!")
+
+            else:
+                print(
+                    f"\nThe character \"{name}\" does not exist in \"{title}\"!")
+
         else:
             print(f"\nThe story container for \"{title}\" does not exist!")
 
